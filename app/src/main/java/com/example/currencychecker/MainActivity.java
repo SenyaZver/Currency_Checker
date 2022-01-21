@@ -29,7 +29,7 @@ import java.util.Set;
 public class MainActivity extends AppCompatActivity {
 
     RecyclerView currenciesList;
-    private RequestQueue queue;
+    private RequestQueue requestQueue;
 
 
     //TODO store currencies as a single object
@@ -39,8 +39,11 @@ public class MainActivity extends AppCompatActivity {
     String[] valueStrings = new String[34];
     double[] values = new double[34];
 
-    public static final String MY_PREFS_NAME = "MyPrefsFile";
 
+    long lastUpdateTime;
+    long currentTime;
+
+    public static final String MY_PREFS_NAME = "MyPrefsFile";
     
 
     @Override
@@ -50,16 +53,22 @@ public class MainActivity extends AppCompatActivity {
 
         currenciesList = findViewById(R.id.CurrenciesList);
 
+        currentTime = System.currentTimeMillis();
 
         getSavedData();
+
 
         Button converterButton = findViewById(R.id.Converter_button);
         Button updateButton = findViewById(R.id.Update_Button);
 
         //TODO make parsing and updating info dependable on the date and existence of said info(task 4)
 
-        queue = Volley.newRequestQueue(this);
-        Parse(names, valueStrings, values);
+        requestQueue = Volley.newRequestQueue(getApplicationContext());
+
+        if (needToUpdate()) {
+            Parse(names, valueStrings, values);
+        }
+
 
 
         RecycleViewAdapter adapter = new RecycleViewAdapter(this, names, valueStrings);
@@ -128,7 +137,7 @@ public class MainActivity extends AppCompatActivity {
                             double value = currency.getDouble("Value");
 
                             names[i] = name;
-                            valueStrings[i] = String.valueOf(value);
+                            valueStrings[i] = String.valueOf(value) + " руб.";
                             values[i] = value;
 
                             i++;
@@ -139,25 +148,37 @@ public class MainActivity extends AppCompatActivity {
                     }
                 }, error -> error.printStackTrace());
 
-        queue.add(request);
+        requestQueue.add(request);
+
         //saving data
         Set<String> savedNames = new HashSet<>(Arrays.asList(names));
         Set<String> savedValues = new HashSet<>(Arrays.asList(valueStrings));
+        long lastUpdateTime = System.currentTimeMillis();
 
         SharedPreferences.Editor editor = getSharedPreferences(MY_PREFS_NAME, MODE_PRIVATE).edit();
         editor.putStringSet("names", savedNames);
         editor.putStringSet("values", savedValues);
+        editor.putLong("lastUpdateTime", lastUpdateTime);
+
         editor.apply();
     }
 
-    void getSavedData() {
+
+    private boolean needToUpdate() {
+        boolean isNull = (names!=null)|(values!=null);
+        //update everyday
+        boolean isTimeToUpdate = ((currentTime - lastUpdateTime)>=(3600000 * 24) | (lastUpdateTime==0));
+        return isNull&isTimeToUpdate;
+    }
+    private void getSavedData() {
         SharedPreferences pref = this.getSharedPreferences(MY_PREFS_NAME, Context.MODE_PRIVATE);
+
         Set<String> namesSet = new HashSet<>(pref.getStringSet("names", new HashSet<>()));
         Set<String> valuesSet = new HashSet<>(pref.getStringSet("values", new HashSet<>()));
 
-
         names = namesSet.toArray(new String[34]);
         valueStrings = valuesSet.toArray(new String[34]);
+        lastUpdateTime = pref.getLong("lastUpdateTime", 0);
     }
 
 
