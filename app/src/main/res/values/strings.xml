@@ -1,0 +1,25 @@
+<resources>
+    <string name="app_name">Currency Checker</string>
+    <string name="convert_rubles_button">Перевести рубли</string>
+    <string name="value">value</string>
+    <string name="name">name</string>
+    <string name="updateButton">Обновить</string>
+
+    <string-array name="TestStrings">
+        <item> name="rofl1" </item>
+        <item> name="rofl2" </item>
+        <item> name="rofl3" </item>
+        <item> name="rofl4" </item>
+        <item> name="rofl5" </item>
+    </string-array>
+
+
+    <string-array name="TestStrings2">
+        <item> name="rofel1" </item>
+        <item> name="rofel2" </item>
+        <item> name="rofel3" </item>
+        <item> name="rofel4" </item>
+        <item> name="rofel5" </item>
+    </string-array>
+
+</resources>
