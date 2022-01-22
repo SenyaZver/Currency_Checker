@@ -4,7 +4,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.util.Log;
 import android.widget.Button;
 
 import androidx.annotation.NonNull;
@@ -17,6 +16,7 @@ import com.android.volley.RequestQueue;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.Volley;
 
+
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -24,11 +24,6 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
-
-
-//sorry for bad code, had to write it during exams :(
-
-//TODO make the list sorted with the most popular currencies on top
 
 public class MainActivity extends AppCompatActivity {
 
@@ -44,11 +39,12 @@ public class MainActivity extends AppCompatActivity {
     double[] values = new double[34];
 
 
+
     Long lastUpdateTime;
     Long currentTime;
 
     public static final String MY_PREFS_NAME = "MyPrefsFile";
-    
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -125,7 +121,6 @@ public class MainActivity extends AppCompatActivity {
 
 
     private void Parse() {
-        Log.i("LOOK HERE", "Parsing started");
         String url = "https://www.cbr-xml-daily.ru/daily_json.js";
 
 
@@ -159,19 +154,38 @@ public class MainActivity extends AppCompatActivity {
         requestQueue.add(request);
 
         //saving data
-        Set<String> savedNames = new HashSet<>(Arrays.asList(names));
-        Set<String> savedValues = new HashSet<>(Arrays.asList(valueStrings));
         lastUpdateTime = System.currentTimeMillis();
 
         SharedPreferences.Editor editor = getSharedPreferences(MY_PREFS_NAME, MODE_PRIVATE).edit();
-        editor.putStringSet("names", savedNames);
-        editor.putStringSet("values", savedValues);
+        Set<String> saveSet = saveData(names, valueStrings);
+        editor.putStringSet("saveSet", saveSet);
         editor.putLong("lastUpdateTime", lastUpdateTime);
 
         editor.apply();
     }
 
-    //TODO doesn't work upon first opening the app
+    private Set<String> saveData(String[] names, String[] valueStrings) {
+        Set<String> saveSet = new HashSet<>();
+        for (int i = 0; i<names.length; i++) {
+            saveSet.add(names[i] + "is" + valueStrings[i]);
+        }
+        return saveSet;
+    }
+
+    public void parseSaveSet(Set<String> saveSet, String[] loadNames, String[] loadValueStrings) {
+
+        String[] saveArray = saveSet.toArray(new String[34]);
+        if (saveArray[0] == null) {
+            return;
+        }
+        for (int i = 0; i<saveArray.length; i++) {
+            int index = saveArray[i].indexOf("is");
+            loadNames[i] = saveArray[i].substring(0, index);
+            loadValueStrings[i] = saveArray[i].substring(index+2);
+        }
+    }
+
+
     private boolean needToUpdate() {
         boolean isNull = (names == null || valueStrings == null);
         //update every day
@@ -185,11 +199,17 @@ public class MainActivity extends AppCompatActivity {
         SharedPreferences pref = this.getSharedPreferences(MY_PREFS_NAME, Context.MODE_PRIVATE);
 
         //TODO fix this bad inefficient solution that randomises the order of the currencies(noticeable when updating)
-        Set<String> namesSet = new HashSet<>(pref.getStringSet("names", new HashSet<>()));
-        Set<String> valuesSet = new HashSet<>(pref.getStringSet("values", new HashSet<>()));
 
-        names = namesSet.toArray(new String[34]);
-        valueStrings = valuesSet.toArray(new String[34]);
+
+        Set<String> saveSet = new HashSet<>(pref.getStringSet("saveSet", new HashSet<>()));
+
+        if (saveSet.isEmpty()) {
+            lastUpdateTime = 0L;
+            return;
+        }
+
+        parseSaveSet(saveSet, names, valueStrings);
+
         values = getDoubleValues(valueStrings);
 
         lastUpdateTime = pref.getLong("lastUpdateTime", 0);
@@ -206,7 +226,7 @@ public class MainActivity extends AppCompatActivity {
             temp[i] = temp[i].substring(0, index);
         }
 
-    
+
         return Arrays.stream(temp)
                 .mapToDouble(Double::parseDouble)
                 .toArray();
