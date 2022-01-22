@@ -4,6 +4,10 @@
     <string name="value">value</string>
     <string name="name">name</string>
     <string name="updateButton">Обновить</string>
+    <string name="ChooseConvert">Выберите валюту для перевода</string>
+    <string name="ChooseSum">Введите сумму в рублях</string>
+    <string name="result">Результат:</string>
+    <string name="clearResult">очистить результат</string>
 
     <string-array name="TestStrings">
         <item> name="rofl1" </item>

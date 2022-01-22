@@ -4,6 +4,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.util.Log;
 import android.widget.Button;
 
 import androidx.annotation.NonNull;
@@ -24,6 +25,15 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
+
+
+
+//sorry for bad code, had to write it during exams :(
+
+//TODO fix the mess regarding saving and loading data
+//TODO store data in database instead of SharedPreferences(in a current state code is inefficient and unreadable
+//TODO sort the list by the popularity of currencies
+
 
 public class MainActivity extends AppCompatActivity {
 
@@ -138,7 +148,6 @@ public class MainActivity extends AppCompatActivity {
                             String name = currency.getString("Name");
                             double value = currency.getDouble("Value");
 
-                            //TODO what's the point of having both double and string arrays for values? fix
                             names[i] = name;
                             valueStrings[i] = String.valueOf(value) + " руб.";
                             values[i] = value;
@@ -164,6 +173,7 @@ public class MainActivity extends AppCompatActivity {
         editor.apply();
     }
 
+    //storing data in strings so we can use Shared Preference.
     private Set<String> saveData(String[] names, String[] valueStrings) {
         Set<String> saveSet = new HashSet<>();
         for (int i = 0; i<names.length; i++) {
@@ -172,10 +182,13 @@ public class MainActivity extends AppCompatActivity {
         return saveSet;
     }
 
+    //getting arrays from the saveSet
     public void parseSaveSet(Set<String> saveSet, String[] loadNames, String[] loadValueStrings) {
-
         String[] saveArray = saveSet.toArray(new String[34]);
-        if (saveArray[0] == null) {
+
+        //another ridiculous implementation caused by the way of saving data
+        //making sure we don't parse absent data
+        if (saveArray[0].equals("nullisnull")) {
             return;
         }
         for (int i = 0; i<saveArray.length; i++) {
@@ -187,11 +200,8 @@ public class MainActivity extends AppCompatActivity {
 
 
     private boolean needToUpdate() {
-        boolean isNull = (names == null || valueStrings == null);
-        //update every day
-        boolean isTimeToUpdate = ((lastUpdateTime==0) || (currentTime - lastUpdateTime)>=(3600000 * 24));
-
-        return isNull||isTimeToUpdate;
+        //update every day, you can make the value lesser and check the log to see, that it does reparse data
+        return (lastUpdateTime==0) || (currentTime - lastUpdateTime)>=(3600000 * 24);
     }
 
 
@@ -200,9 +210,8 @@ public class MainActivity extends AppCompatActivity {
 
         //TODO fix this bad inefficient solution that randomises the order of the currencies(noticeable when updating)
 
-
         Set<String> saveSet = new HashSet<>(pref.getStringSet("saveSet", new HashSet<>()));
-
+        //making sure we don't parse absent data
         if (saveSet.isEmpty()) {
             lastUpdateTime = 0L;
             return;
@@ -216,6 +225,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     double[] getDoubleValues(String[] stringValues) {
+        //again, making sure we don't parse absent data
         if (stringValues[0] == null) {
             return new double[34];
         }
