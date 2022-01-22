@@ -19,6 +19,7 @@ public class RecycleViewAdapter extends RecyclerView.Adapter<RecycleViewAdapter.
         this.context = context;
         this.names = names;
         this.values = values;
+
     }
 
     public void swapItems(@NonNull String[] newNames, @NonNull String[] newValues){
