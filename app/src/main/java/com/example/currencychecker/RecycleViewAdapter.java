@@ -22,11 +22,6 @@ public class RecycleViewAdapter extends RecyclerView.Adapter<RecycleViewAdapter.
 
     }
 
-    public void swapItems(@NonNull String[] newNames, @NonNull String[] newValues){
-        this.names = newNames;
-        this.values = newValues;
-        notifyDataSetChanged();
-    }
 
     public class ViewHolder extends RecyclerView.ViewHolder {
         TextView name;
@@ -50,6 +45,8 @@ public class RecycleViewAdapter extends RecyclerView.Adapter<RecycleViewAdapter.
 
         return new ViewHolder(view);
     }
+
+
 
     @Override
     public void onBindViewHolder(@NonNull RecycleViewAdapter.ViewHolder holder, int position) {

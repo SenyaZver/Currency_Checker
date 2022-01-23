@@ -4,7 +4,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.util.Log;
 import android.widget.Button;
 
 import androidx.annotation.NonNull;
@@ -17,7 +16,6 @@ import com.android.volley.RequestQueue;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.Volley;
 
-
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -25,7 +23,6 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
-
 
 
 //sorry for bad code, had to write it during exams :(
@@ -39,6 +36,7 @@ public class MainActivity extends AppCompatActivity {
 
     RecyclerView currenciesList;
     private RequestQueue requestQueue;
+    RecycleViewAdapter adapter;
 
 
     //TODO store currencies as a single object
@@ -65,6 +63,13 @@ public class MainActivity extends AppCompatActivity {
 
         currentTime = System.currentTimeMillis();
 
+
+
+        adapter = new RecycleViewAdapter(this, names, valueStrings);
+        currenciesList.setAdapter(adapter);
+        currenciesList.setLayoutManager(new LinearLayoutManager(this));
+
+
         getSavedData();
 
 
@@ -75,26 +80,16 @@ public class MainActivity extends AppCompatActivity {
         requestQueue = Volley.newRequestQueue(getApplicationContext());
 
 
-        RecycleViewAdapter adapter = new RecycleViewAdapter(this, names, valueStrings);
-        currenciesList.setAdapter(adapter);
-        currenciesList.setLayoutManager(new LinearLayoutManager(this));
-
-
-
         if (needToUpdate()) {
             Parse();
-            adapter.swapItems(names, valueStrings);
-            adapter.notifyDataSetChanged();     //one of these might be unnecessary
         }
 
 
         updateButton.setOnClickListener(view -> {
             Parse();
-            adapter.swapItems(names, valueStrings);
-            adapter.notifyDataSetChanged();     //one of these might be unnecessary
         });
 
-        //TODO implement Converter activity (task 2)
+
         converterButton.setOnClickListener(view -> {
             Intent converterIntent = new Intent(view.getContext(), ConverterActivity.class);
             converterIntent.putExtra("names", names);
@@ -149,8 +144,10 @@ public class MainActivity extends AppCompatActivity {
                             double value = currency.getDouble("Value");
 
                             names[i] = name;
-                            valueStrings[i] = String.valueOf(value) + " руб.";
+                            valueStrings[i] = value + " руб.";
                             values[i] = value;
+
+                            adapter.notifyItemChanged(i);
 
                             i++;
                         }
@@ -161,6 +158,7 @@ public class MainActivity extends AppCompatActivity {
                 }, error -> error.printStackTrace());
 
         requestQueue.add(request);
+
 
         //saving data
         lastUpdateTime = System.currentTimeMillis();
@@ -201,7 +199,7 @@ public class MainActivity extends AppCompatActivity {
 
     private boolean needToUpdate() {
         //update every day, you can make the value lesser and check the log to see, that it does reparse data
-        return (lastUpdateTime==0) || (currentTime - lastUpdateTime)>=(3600000 * 24);
+        return (names[0] == null) || (currentTime - lastUpdateTime)>=(3600000 * 24);
     }
 
 
@@ -218,8 +216,9 @@ public class MainActivity extends AppCompatActivity {
         }
 
         parseSaveSet(saveSet, names, valueStrings);
-
         values = getDoubleValues(valueStrings);
+
+        adapter.notifyDataSetChanged();
 
         lastUpdateTime = pref.getLong("lastUpdateTime", 0);
     }
@@ -241,6 +240,37 @@ public class MainActivity extends AppCompatActivity {
                 .mapToDouble(Double::parseDouble)
                 .toArray();
     }
+
+//    private void sort(String[] names, String[] valueStrings, double[] values) {
+//        if (names[0] == null) {
+//            return;
+//        }
+//        for (int i = 0; i<names.length; i++) {
+//            if (names[i].startsWith("Дол")) {
+//                swap(names, i, 0);
+//                swap(valueStrings, i, 0);
+//                doubleSwap(values, i, 0);
+//            }
+//            if (names[i].startsWith("Евр")) {
+//                swap(names, i, 1);
+//                swap(valueStrings, i, 1);
+//                doubleSwap(values, i, 1);
+//            }
+//        }
+//        adapter.notifyDataSetChanged();
+//    }
+//
+//    public static <T> void swap (T[] a, int i, int j) {
+//        T t = a[i];
+//        a[i] = a[j];
+//        a[j] = t;
+//    }
+//
+//    public static void doubleSwap (double[] a, int i, int j) {
+//        double t = a[i];
+//        a[i] = a[j];
+//        a[j] = t;
+//    }
 
 
 }
