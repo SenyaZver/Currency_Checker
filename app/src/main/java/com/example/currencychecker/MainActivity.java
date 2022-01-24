@@ -184,11 +184,13 @@ public class MainActivity extends AppCompatActivity {
     public void parseSaveSet(Set<String> saveSet, String[] loadNames, String[] loadValueStrings) {
         String[] saveArray = saveSet.toArray(new String[34]);
 
+
         //another ridiculous implementation caused by the way of saving data
         //making sure we don't parse absent data
         if (saveArray[0].equals("nullisnull")) {
             return;
         }
+
         for (int i = 0; i<saveArray.length; i++) {
             int index = saveArray[i].indexOf("is");
             loadNames[i] = saveArray[i].substring(0, index);
@@ -199,7 +201,7 @@ public class MainActivity extends AppCompatActivity {
 
     private boolean needToUpdate() {
         //update every day, you can make the value lesser and check the log to see, that it does reparse data
-        return (names[0] == null) || (currentTime - lastUpdateTime)>=(3600000 * 24);
+        return isNull() || (currentTime - lastUpdateTime)>=(3600000 * 24);
     }
 
 
@@ -225,7 +227,7 @@ public class MainActivity extends AppCompatActivity {
 
     double[] getDoubleValues(String[] stringValues) {
         //again, making sure we don't parse absent data
-        if (stringValues[0] == null) {
+        if ((stringValues == null) || (stringValues[0] == null)) {
             return new double[34];
         }
         String[] temp = Arrays.copyOf(stringValues, stringValues.length);
@@ -239,6 +241,10 @@ public class MainActivity extends AppCompatActivity {
         return Arrays.stream(temp)
                 .mapToDouble(Double::parseDouble)
                 .toArray();
+    }
+
+    public boolean isNull() {
+        return (names == null) || (names[0] == null);
     }
 
 //    private void sort(String[] names, String[] valueStrings, double[] values) {
